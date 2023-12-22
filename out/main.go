@@ -11,13 +11,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/arbourd/concourse-slack-alert-resource/concourse"
-	"github.com/arbourd/concourse-slack-alert-resource/slack"
+	"github.com/higuoxing/concourse-google-chat-alert-resource/concourse"
+	"github.com/higuoxing/concourse-google-chat-alert-resource/gchat"
 )
 
-func buildMessage(alert Alert, m concourse.BuildMetadata, path string) *slack.Message {
+func buildMessage(alert Alert, m concourse.BuildMetadata, path string) *gchat.Message {
 	message := alert.Message
-	channel := alert.Channel
 	text := alert.Text
 
 	// Open and read message file if set
@@ -29,18 +28,6 @@ func buildMessage(alert Alert, m concourse.BuildMetadata, path string) *slack.Me
 			fmt.Fprintf(os.Stderr, "error reading message_file: %v\nwill default to message instead\n", err)
 		} else {
 			message = strings.TrimSpace(string(f))
-		}
-	}
-
-	// Open and read channel file if set
-	if alert.ChannelFile != "" {
-		file := filepath.Join(path, alert.ChannelFile)
-		f, err := ioutil.ReadFile(file)
-
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "error reading channel_file: %v\nwill default to channel instead\n", err)
-		} else {
-			channel = strings.TrimSpace(string(f))
 		}
 	}
 
@@ -56,28 +43,46 @@ func buildMessage(alert Alert, m concourse.BuildMetadata, path string) *slack.Me
 		}
 	}
 
-	attachment := slack.Attachment{
-		Fallback:   fmt.Sprintf("%s -- %s", fmt.Sprintf("%s: %s/%s/%s", message, m.PipelineName, m.JobName, m.BuildName), m.URL),
-		AuthorName: message,
-		Color:      alert.Color,
-		Footer:     m.URL,
-		FooterIcon: alert.IconURL,
-		Fields: []slack.Field{
-			{
-				Title: "Job",
-				Value: fmt.Sprintf("%s/%s", m.PipelineName, m.JobName),
-				Short: true,
+	widgets := []gchat.CardWidget{}
+
+	if text != "" {
+		widgets = append(widgets, gchat.CardWidget{
+			DecoratedText: gchat.WidgetDecoratedText{
+				Text:     text,
+				WrapText: true,
 			},
-			{
-				Title: "Build",
-				Value: m.BuildName,
-				Short: true,
-			},
-		},
-		Text: text,
+		})
 	}
 
-	return &slack.Message{Attachments: []slack.Attachment{attachment}, Channel: channel}
+	widgets = append(widgets, []gchat.CardWidget{
+		{
+			DecoratedText: gchat.WidgetDecoratedText{
+				Text:     fmt.Sprintf("<b>Job</b> %s | <b>Build</b> %s", m.JobName, m.BuildName),
+				WrapText: true,
+			},
+		},
+		{
+			DecoratedText: gchat.WidgetDecoratedText{
+				StartIcon: &gchat.DecoratedTextIcon{
+					IconUrl: alert.IconURL,
+				},
+				Text:     fmt.Sprintf("<a href=\"%s\">%s</a>", m.URL, m.URL),
+				WrapText: true,
+			},
+		},
+	}...)
+
+	card := gchat.Card{
+		Sections: []gchat.CardSection{
+			{
+				Header:      message,
+				Collapsible: false,
+				Widgets:     widgets,
+			},
+		},
+	}
+
+	return &gchat.Message{Cards: []gchat.CardV2{{CardId: "awesome card id", Card: card}}}
 }
 
 func previousBuildStatus(input *concourse.OutRequest, m concourse.BuildMetadata) (string, error) {
@@ -139,7 +144,7 @@ func out(input *concourse.OutRequest, path string) (*concourse.OutResponse, erro
 	alert := NewAlert(input)
 	metadata := concourse.NewBuildMetadata(input.Source.ConcourseURL)
 	if alert.Disabled {
-		return buildOut(alert.Type, alert.Channel, false), nil
+		return buildOut(alert.Type, false), nil
 	}
 
 	if alert.Type == "fixed" || alert.Type == "broke" {
@@ -149,24 +154,23 @@ func out(input *concourse.OutRequest, path string) (*concourse.OutResponse, erro
 		}
 
 		if (alert.Type == "fixed" && pstatus == "succeeded") || (alert.Type == "broke" && pstatus != "succeeded") {
-			return buildOut(alert.Type, alert.Channel, false), nil
+			return buildOut(alert.Type, false), nil
 		}
 	}
 
 	message := buildMessage(alert, metadata, path)
-	err := slack.Send(input.Source.URL, message)
+	err := gchat.Send(input.Source.URL, message)
 	if err != nil {
 		return nil, fmt.Errorf("error sending slack message: %v", err)
 	}
-	return buildOut(alert.Type, message.Channel, true), nil
+	return buildOut(alert.Type, true), nil
 }
 
-func buildOut(atype string, channel string, alerted bool) *concourse.OutResponse {
+func buildOut(atype string, alerted bool) *concourse.OutResponse {
 	return &concourse.OutResponse{
 		Version: concourse.Version{"ver": "static"},
 		Metadata: []concourse.Metadata{
 			{Name: "type", Value: atype},
-			{Name: "channel", Value: channel},
 			{Name: "alerted", Value: strconv.FormatBool(alerted)},
 		},
 	}

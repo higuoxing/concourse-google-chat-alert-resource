@@ -8,8 +8,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/arbourd/concourse-slack-alert-resource/concourse"
-	"github.com/arbourd/concourse-slack-alert-resource/slack"
+	"github.com/higuoxing/concourse-google-chat-alert-resource/concourse"
 	"github.com/google/go-cmp/cmp"
 )
 

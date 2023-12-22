@@ -1,4 +1,4 @@
-package slack
+package gchat
 
 import (
 	"net/http"

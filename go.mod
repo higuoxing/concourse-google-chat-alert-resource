@@ -1,4 +1,4 @@
-module github.com/arbourd/concourse-slack-alert-resource
+module github.com/higuoxing/concourse-google-chat-alert-resource
 
 go 1.21
 
