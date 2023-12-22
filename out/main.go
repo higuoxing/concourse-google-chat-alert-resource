@@ -57,7 +57,7 @@ func buildMessage(alert Alert, m concourse.BuildMetadata, path string) *gchat.Me
 	widgets = append(widgets, []gchat.CardWidget{
 		{
 			DecoratedText: gchat.WidgetDecoratedText{
-				Text:     fmt.Sprintf("<b>Job</b> %s | <b>Build</b> %s", m.JobName, m.BuildName),
+				Text:     fmt.Sprintf("<b>Job</b> %s/%s | <b>Build</b> %s", m.PipelineName, m.JobName, m.BuildName),
 				WrapText: true,
 			},
 		},
