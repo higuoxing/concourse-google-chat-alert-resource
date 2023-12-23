@@ -32,7 +32,7 @@ jobs:
       - uses: docker/metadata-action@v5
         id: docker_meta
         with:
-          images: docker.io/arbourd/concourse-slack-alert-resource,ghcr.io/arbourd/concourse-slack-alert-resource
+          images: docker.io/epic2/concourse-google-chat-alert-resource
           tags: |
             type=edge
             type=semver,pattern={{raw}}
@@ -45,29 +45,29 @@ jobs:
           cache-from: type=gha
           load: true
           push: false
-          tags: concourse-slack-alert-resource:dev
+          tags: concourse-google-chat-alert-resource:dev
       - run: >
-          echo "{\"source\":{\"url\":\"${{ vars.SLACK_WEBHOOK }}\"}}" | docker run -i
+          echo "{\"source\":{\"url\":\"${{ secrets.GOOGLE_CHAT_WEBHOOK }}\"}}" | docker run -i
           -e "BUILD_TEAM_NAME=main"
           -e "BUILD_PIPELINE_NAME=github-actions"
           -e "BUILD_JOB_NAME=test"
           -e "BUILD_NAME=$GITHUB_RUN_ID-$GITHUB_RUN_NUMBER"
           -e "BUILD_PIPELINE_INSTANCE_VARS={\"ref\":\"$GITHUB_REF_NAME\"}"
-          concourse-slack-alert-resource:dev
+          concourse-google-chat-alert-resource:dev
           /opt/resource/out $PWD
 
       - if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
         uses: docker/login-action@v3
         with:
           registry: docker.io
-          username: arbourd
+          username: epic2
           password: ${{ secrets.DOCKER_TOKEN }}
-      - if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      ## - if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
+      ##   uses: docker/login-action@v3
+      ##   with:
+      ##     registry: ghcr.io
+      ##     username: ${{ github.actor }}
+      ##     password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and publish image
         if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
