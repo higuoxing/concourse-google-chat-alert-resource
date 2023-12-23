@@ -1,8 +1,8 @@
-[![Go Report Card](https://goreportcard.com/badge/github.com/arbourd/concourse-slack-alert-resource)](https://goreportcard.com/report/github.com/arbourd/concourse-slack-alert-resource)
+[![Go Report Card](https://goreportcard.com/badge/github.com/higuoxing/concourse-google-chat-alert-resource)](https://goreportcard.com/report/github.com/higuoxing/concourse-google-chat-alert-resource)
 
-# concourse-slack-alert-resource
+# concourse-google-chat-alert-resource
 
-A structured and opinionated Slack notification resource for [Concourse](https://concourse-ci.org/).
+A structured and opinionated Google Chat notification resource for [Concourse](https://concourse-ci.org/).
 
 <img src="./img/default.png" width="60%">
 
@@ -15,17 +15,17 @@ Use this resource by adding the following to the resource_types section of a pip
 ```yaml
 resource_types:
 
-- name: slack-alert
+- name: gchat-alert
   type: registry-image
   source:
-    repository: arbourd/concourse-slack-alert-resource
+    repository: epic2/concourse-google-chat-alert-resource
 ```
 
 See the [Concourse docs](https://concourse-ci.org/resource-types.html) for more details on adding `resource_types` to a pipeline config.
 
 ## Source Configuration
 
-* `url`: *Required.* Slack webhook URL.
+* `url`: *Required.* Google Chat webhook URL.
 * `channel`: *Optional*. Target channel where messages are posted. If unset the default channel of the webhook is used.
 * `concourse_url`: *Optional.* The external URL that points to Concourse. Defaults to the env variable `ATC_EXTERNAL_URL`.
 * `username`: *Optional.* Concourse local user (or basic auth) username. Required for non-public pipelines if using alert type `fixed` or `broke`
@@ -38,20 +38,19 @@ See the [Concourse docs](https://concourse-ci.org/resource-types.html) for more 
 
 ### `in`: No operation.
 
-### `out`: Send a message to Slack.
+### `out`: Send a message to Google Chat.
 
-Sends a structured message to Slack based on the alert type.
+Sends a structured message to Google Chat based on the alert type.
 
 #### Parameters
 
-- `alert_type`: *Optional.* The type of alert to send to Slack. See [Alert Types](#alert-types). Defaults to `default`.
+- `alert_type`: *Optional.* The type of alert to send to Google Chat. See [Alert Types](#alert-types). Defaults to `default`.
 - `channel`: *Optional.* Channel where this message is posted. Defaults to the `channel` setting in Source.
 - `channel_file`: *Optional.* File containing text which overrides `channel`. If the file cannot be read, `channel` will be used instead.
 - `message`: *Optional.* The status message at the top of the alert. Defaults to name of alert type.
 - `message_file`: *Optional.* File containing text which overrides `message`. If the file cannot be read, `message` will be used instead.
 - `text`: *Optional.* Additional text below the message of the alert. Defaults to an empty string.
 - `text_file`: *Optional.* File containing text which overrides `text`. If the file cannot be read, `text` will be used instead.
-- `color`: *Optional.* The color of the notification bar as a hexadecimal. Defaults to the icon color of the alert type.
 - `disable`: *Optional.* Disables the alert. Defaults to `false`.
 
 #### Alert Types
@@ -96,14 +95,14 @@ Sends a structured message to Slack based on the alert type.
 
 ### Out
 
-Using the default alert type with custom message and color:
+Using the default alert type with custom message:
 
 ```yaml
 resources:
 - name: notify
-  type: slack-alert
+  type: gchat-alert
   source:
-    url: https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX
+    url: https://chat.googleapis.com/v1/spaces/xxx_yyy/messages?key=xxxx_yyy
 
 jobs:
   # ...
@@ -111,7 +110,6 @@ jobs:
   - put: notify
     params:
       message: Completed
-      color: "#eeeeee"
 ```
 
 Using built-in alert types with appropriate build hooks:
@@ -119,9 +117,9 @@ Using built-in alert types with appropriate build hooks:
 ```yaml
 resources:
 - name: notify
-  type: slack-alert
+  type: gchat-alert
   source:
-    url: https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX
+    url: https://chat.googleapis.com/v1/spaces/xxx_yyy/messages?key=xxxx_yyy
 
 jobs:
   # ...
@@ -153,9 +151,9 @@ Using the `fixed` alert type:
 ```yaml
 resources:
 - name: notify
-  type: slack-alert
+  type: gchat-alert
   source:
-    url: https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX
+    url: https://chat.googleapis.com/v1/spaces/xxx_yyy/messages?key=xxxx_yyy
     # `alert_type: fixed` requires Concourse credentials if pipeline is private
     username: concourse
     password: concourse
