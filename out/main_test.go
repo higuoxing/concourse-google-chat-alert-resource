@@ -1,15 +1,13 @@
 package main
 
 import (
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"path/filepath"
 	"testing"
 
-	"github.com/higuoxing/concourse-google-chat-alert-resource/concourse"
 	"github.com/google/go-cmp/cmp"
+	"github.com/higuoxing/concourse-google-chat-alert-resource/concourse"
 )
 
 func TestOut(t *testing.T) {
@@ -44,7 +42,6 @@ func TestOut(t *testing.T) {
 				Version: concourse.Version{"ver": "static"},
 				Metadata: []concourse.Metadata{
 					{Name: "type", Value: "default"},
-					{Name: "channel", Value: ""},
 					{Name: "alerted", Value: "true"},
 				},
 			},
@@ -59,7 +56,6 @@ func TestOut(t *testing.T) {
 				Version: concourse.Version{"ver": "static"},
 				Metadata: []concourse.Metadata{
 					{Name: "type", Value: "success"},
-					{Name: "channel", Value: ""},
 					{Name: "alerted", Value: "true"},
 				},
 			},
@@ -74,7 +70,6 @@ func TestOut(t *testing.T) {
 				Version: concourse.Version{"ver": "static"},
 				Metadata: []concourse.Metadata{
 					{Name: "type", Value: "failed"},
-					{Name: "channel", Value: ""},
 					{Name: "alerted", Value: "true"},
 				},
 			},
@@ -89,7 +84,6 @@ func TestOut(t *testing.T) {
 				Version: concourse.Version{"ver": "static"},
 				Metadata: []concourse.Metadata{
 					{Name: "type", Value: "started"},
-					{Name: "channel", Value: ""},
 					{Name: "alerted", Value: "true"},
 				},
 			},
@@ -104,7 +98,6 @@ func TestOut(t *testing.T) {
 				Version: concourse.Version{"ver": "static"},
 				Metadata: []concourse.Metadata{
 					{Name: "type", Value: "aborted"},
-					{Name: "channel", Value: ""},
 					{Name: "alerted", Value: "true"},
 				},
 			},
@@ -123,7 +116,6 @@ func TestOut(t *testing.T) {
 				Version: concourse.Version{"ver": "static"},
 				Metadata: []concourse.Metadata{
 					{Name: "type", Value: "default"},
-					{Name: "channel", Value: ""},
 					{Name: "alerted", Value: "true"},
 				},
 			},
@@ -137,7 +129,6 @@ func TestOut(t *testing.T) {
 				Version: concourse.Version{"ver": "static"},
 				Metadata: []concourse.Metadata{
 					{Name: "type", Value: "default"},
-					{Name: "channel", Value: "#source"},
 					{Name: "alerted", Value: "true"},
 				},
 			},
@@ -152,7 +143,6 @@ func TestOut(t *testing.T) {
 				Version: concourse.Version{"ver": "static"},
 				Metadata: []concourse.Metadata{
 					{Name: "type", Value: "default"},
-					{Name: "channel", Value: "#params"},
 					{Name: "alerted", Value: "true"},
 				},
 			},
@@ -167,13 +157,12 @@ func TestOut(t *testing.T) {
 				Version: concourse.Version{"ver": "static"},
 				Metadata: []concourse.Metadata{
 					{Name: "type", Value: "default"},
-					{Name: "channel", Value: ""},
 					{Name: "alerted", Value: "false"},
 				},
 			},
 			env: env,
 		},
-		"error without Slack URL": {
+		"error without Google Chat URL": {
 			outRequest: &concourse.OutRequest{
 				Source: concourse.Source{URL: ""},
 			},
@@ -210,164 +199,6 @@ func TestOut(t *testing.T) {
 				t.Fatalf("expected an error from out:\n\t(GOT): nil")
 			} else if !cmp.Equal(got, c.want) {
 				t.Fatalf("unexpected concourse.OutResponse value from out:\n\t(GOT): %#v\n\t(WNT): %#v\n\t(DIFF): %v", got, c.want, cmp.Diff(got, c.want))
-			}
-		})
-	}
-}
-func TestBuildMessage(t *testing.T) {
-	cases := map[string]struct {
-		alert Alert
-		want  *slack.Message
-	}{
-		"empty channel": {
-			alert: Alert{
-				Type:    "default",
-				Color:   "#ffffff",
-				IconURL: "",
-				Message: "Testing",
-			},
-			want: &slack.Message{
-				Attachments: []slack.Attachment{
-					{
-						Fallback:   "Testing: demo/test/1 -- https://ci.example.com/teams/main/pipelines/demo/jobs/test/builds/1",
-						Color:      "#ffffff",
-						AuthorName: "Testing",
-						Fields: []slack.Field{
-							{Title: "Job", Value: "demo/test", Short: true},
-							{Title: "Build", Value: "1", Short: true},
-						},
-						Footer: "https://ci.example.com/teams/main/pipelines/demo/jobs/test/builds/1", FooterIcon: ""},
-				},
-				Channel: ""},
-		},
-		"channel and url set": {
-			alert: Alert{
-				Type:    "default",
-				Channel: "general",
-				Color:   "#ffffff",
-				IconURL: "",
-				Message: "Testing",
-			},
-			want: &slack.Message{
-				Attachments: []slack.Attachment{
-					{
-						Fallback:   "Testing: demo/test/1 -- https://ci.example.com/teams/main/pipelines/demo/jobs/test/builds/1",
-						Color:      "#ffffff",
-						AuthorName: "Testing",
-						Fields: []slack.Field{
-							{Title: "Job", Value: "demo/test", Short: true},
-							{Title: "Build", Value: "1", Short: true},
-						},
-						Footer: "https://ci.example.com/teams/main/pipelines/demo/jobs/test/builds/1", FooterIcon: ""},
-				},
-				Channel: "general"},
-		},
-		"message file": {
-			alert: Alert{
-				Type:        "default",
-				Message:     "Testing",
-				MessageFile: "test_file",
-			},
-			want: &slack.Message{
-				Attachments: []slack.Attachment{
-					{
-						Fallback:   "filecontents: demo/test/1 -- https://ci.example.com/teams/main/pipelines/demo/jobs/test/builds/1",
-						AuthorName: "filecontents",
-						Fields: []slack.Field{
-							{Title: "Job", Value: "demo/test", Short: true},
-							{Title: "Build", Value: "1", Short: true},
-						},
-						Footer: "https://ci.example.com/teams/main/pipelines/demo/jobs/test/builds/1", FooterIcon: ""},
-				},
-			},
-		},
-		"message file failure": {
-			alert: Alert{
-				Type:        "default",
-				Message:     "Testing",
-				MessageFile: "missing file",
-			},
-			want: &slack.Message{
-				Attachments: []slack.Attachment{
-					{
-						Fallback:   "Testing: demo/test/1 -- https://ci.example.com/teams/main/pipelines/demo/jobs/test/builds/1",
-						AuthorName: "Testing",
-						Fields: []slack.Field{
-							{Title: "Job", Value: "demo/test", Short: true},
-							{Title: "Build", Value: "1", Short: true},
-						},
-						Footer: "https://ci.example.com/teams/main/pipelines/demo/jobs/test/builds/1", FooterIcon: ""},
-				},
-			},
-		},
-		"channel file": {
-			alert: Alert{
-				Type:        "default",
-				Channel:     "testchannel",
-				ChannelFile: "test_file",
-			},
-			want: &slack.Message{
-				Attachments: []slack.Attachment{
-					{
-						Fallback: ": demo/test/1 -- https://ci.example.com/teams/main/pipelines/demo/jobs/test/builds/1",
-						Fields: []slack.Field{
-							{Title: "Job", Value: "demo/test", Short: true},
-							{Title: "Build", Value: "1", Short: true},
-						},
-						Footer: "https://ci.example.com/teams/main/pipelines/demo/jobs/test/builds/1", FooterIcon: ""},
-				},
-				Channel: "filecontents",
-			},
-		},
-		"channel file failure": {
-			alert: Alert{
-				Type:        "default",
-				Channel:     "testchannel",
-				ChannelFile: "missing file",
-			},
-			want: &slack.Message{
-				Attachments: []slack.Attachment{
-					{
-						Fallback: ": demo/test/1 -- https://ci.example.com/teams/main/pipelines/demo/jobs/test/builds/1",
-						Fields: []slack.Field{
-							{Title: "Job", Value: "demo/test", Short: true},
-							{Title: "Build", Value: "1", Short: true},
-						},
-						Footer: "https://ci.example.com/teams/main/pipelines/demo/jobs/test/builds/1", FooterIcon: ""},
-				},
-				Channel: "testchannel",
-			},
-		},
-	}
-
-	metadata := concourse.BuildMetadata{
-		Host:         "https://ci.example.com",
-		TeamName:     "main",
-		PipelineName: "demo",
-		JobName:      "test",
-		BuildName:    "1",
-		URL:          "https://ci.example.com/teams/main/pipelines/demo/jobs/test/builds/1",
-	}
-
-	for name, c := range cases {
-		t.Run(name, func(t *testing.T) {
-			path := ""
-			if c.alert.MessageFile != "" || c.alert.ChannelFile != "" {
-				dir, err := ioutil.TempDir("", "example")
-				if err != nil {
-					t.Fatal(err)
-				}
-				path = dir
-
-				defer os.RemoveAll(dir)
-				if err := ioutil.WriteFile(filepath.Join(dir, "test_file"), []byte("filecontents"), 0666); err != nil {
-					t.Fatal(err)
-				}
-			}
-
-			got := buildMessage(c.alert, metadata, path)
-			if !cmp.Equal(got, c.want) {
-				t.Fatalf("unexpected slack.Message value from buildSlackMessage:\n\t(GOT): %#v\n\t(WNT): %#v\n\t(DIFF): %v", got, c.want, cmp.Diff(got, c.want))
 			}
 		})
 	}

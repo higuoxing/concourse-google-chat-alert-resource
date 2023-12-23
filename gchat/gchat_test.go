@@ -12,7 +12,7 @@ func TestSend(t *testing.T) {
 		err     bool
 	}{
 		"ok": {
-			message: &Message{Channel: "concourse"},
+			message: &Message{},
 		},
 		"unauthorized": {
 			message: &Message{},

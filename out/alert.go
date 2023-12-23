@@ -2,7 +2,7 @@ package main
 
 import "github.com/higuoxing/concourse-google-chat-alert-resource/concourse"
 
-// An Alert defines the notification that will be sent to Slack.
+// An Alert defines the notification that will be sent to Google Chat.
 type Alert struct {
 	Type        string
 	Channel     string

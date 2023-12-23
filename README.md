@@ -14,7 +14,6 @@ Use this resource by adding the following to the resource_types section of a pip
 
 ```yaml
 resource_types:
-
 - name: gchat-alert
   type: registry-image
   source:

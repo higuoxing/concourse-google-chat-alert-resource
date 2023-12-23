@@ -138,7 +138,7 @@ func previousBuildName(s string) (string, error) {
 
 func out(input *concourse.OutRequest, path string) (*concourse.OutResponse, error) {
 	if input.Source.URL == "" {
-		return nil, errors.New("slack webhook url cannot be blank")
+		return nil, errors.New("google chat webhook url cannot be blank")
 	}
 
 	alert := NewAlert(input)
@@ -161,7 +161,7 @@ func out(input *concourse.OutRequest, path string) (*concourse.OutResponse, erro
 	message := buildMessage(alert, metadata, path)
 	err := gchat.Send(input.Source.URL, message)
 	if err != nil {
-		return nil, fmt.Errorf("error sending slack message: %v", err)
+		return nil, fmt.Errorf("error sending google chat message: %v", err)
 	}
 	return buildOut(alert.Type, true), nil
 }
