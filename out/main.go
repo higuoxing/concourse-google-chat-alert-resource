@@ -43,46 +43,13 @@ func buildMessage(alert Alert, m concourse.BuildMetadata, path string) *gchat.Me
 		}
 	}
 
-	widgets := []gchat.CardWidget{}
-
+	builtMessage := fmt.Sprintf("%s *%s*\n", alert.Emoji, message)
 	if text != "" {
-		widgets = append(widgets, gchat.CardWidget{
-			DecoratedText: gchat.WidgetDecoratedText{
-				Text:     text,
-				WrapText: true,
-			},
-		})
+		builtMessage += fmt.Sprintf("%s\n", text)
 	}
+	builtMessage += fmt.Sprintf("*Job* %s/%s | *Build* %s\n%s\n", m.PipelineName, m.JobName, m.BuildName, m.URL)
 
-	widgets = append(widgets, []gchat.CardWidget{
-		{
-			DecoratedText: gchat.WidgetDecoratedText{
-				Text:     fmt.Sprintf("<b>Job</b> %s/%s | <b>Build</b> %s", m.PipelineName, m.JobName, m.BuildName),
-				WrapText: true,
-			},
-		},
-		{
-			DecoratedText: gchat.WidgetDecoratedText{
-				StartIcon: &gchat.DecoratedTextIcon{
-					IconUrl: alert.IconURL,
-				},
-				Text:     fmt.Sprintf("<a href=\"%s\">%s</a>", m.URL, m.URL),
-				WrapText: true,
-			},
-		},
-	}...)
-
-	card := gchat.Card{
-		Sections: []gchat.CardSection{
-			{
-				Header:      message,
-				Collapsible: false,
-				Widgets:     widgets,
-			},
-		},
-	}
-
-	return &gchat.Message{Cards: []gchat.CardV2{{CardId: "awesome card id", Card: card}}}
+	return &gchat.Message{Text: builtMessage}
 }
 
 func previousBuildStatus(input *concourse.OutRequest, m concourse.BuildMetadata) (string, error) {

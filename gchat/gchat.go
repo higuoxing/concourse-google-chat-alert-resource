@@ -9,7 +9,8 @@ import (
 
 // Message represents a google-chat message.
 type Message struct {
-	Cards []CardV2 `json:"cardsV2"`
+	Cards []CardV2 `json:"cardsV2,omitempty"`
+	Text string `json:"text,omitempty"`
 }
 
 // CardV2 represents a google-chat card message field.
