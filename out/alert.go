@@ -27,7 +27,7 @@ func NewAlert(input *concourse.OutRequest) Alert {
 			Color:   "#32cd32",
 			IconURL: "https://ci.concourse-ci.org/public/images/favicon-succeeded.png",
 			Message: "Success",
-			Emoji: "🟢",
+			Emoji:   "🟢",
 		}
 	case "failed":
 		alert = Alert{
@@ -35,7 +35,7 @@ func NewAlert(input *concourse.OutRequest) Alert {
 			Color:   "#d00000",
 			IconURL: "https://ci.concourse-ci.org/public/images/favicon-failed.png",
 			Message: "Failed",
-			Emoji: "🔴",
+			Emoji:   "🔴",
 		}
 	case "started":
 		alert = Alert{
@@ -43,7 +43,7 @@ func NewAlert(input *concourse.OutRequest) Alert {
 			Color:   "#f7cd42",
 			IconURL: "https://ci.concourse-ci.org/public/images/favicon-started.png",
 			Message: "Started",
-			Emoji: "🟡",
+			Emoji:   "🟡",
 		}
 	case "aborted":
 		alert = Alert{
@@ -51,7 +51,7 @@ func NewAlert(input *concourse.OutRequest) Alert {
 			Color:   "#8d4b32",
 			IconURL: "https://ci.concourse-ci.org/public/images/favicon-aborted.png",
 			Message: "Aborted",
-			Emoji: "🟤",
+			Emoji:   "🟤",
 		}
 	case "fixed":
 		alert = Alert{
@@ -59,7 +59,7 @@ func NewAlert(input *concourse.OutRequest) Alert {
 			Color:   "#32cd32",
 			IconURL: "https://ci.concourse-ci.org/public/images/favicon-succeeded.png",
 			Message: "Fixed",
-			Emoji: "🟢",
+			Emoji:   "🟢",
 		}
 	case "broke":
 		alert = Alert{
@@ -67,7 +67,7 @@ func NewAlert(input *concourse.OutRequest) Alert {
 			Color:   "#d00000",
 			IconURL: "https://ci.concourse-ci.org/public/images/favicon-failed.png",
 			Message: "Broke",
-			Emoji: "🔴",
+			Emoji:   "🔴",
 		}
 	case "errored":
 		alert = Alert{
@@ -75,7 +75,7 @@ func NewAlert(input *concourse.OutRequest) Alert {
 			Color:   "#f5a623",
 			IconURL: "https://ci.concourse-ci.org/public/images/favicon-errored.png",
 			Message: "Errored",
-			Emoji: "🟠",
+			Emoji:   "🟠",
 		}
 	default:
 		alert = Alert{
@@ -83,7 +83,7 @@ func NewAlert(input *concourse.OutRequest) Alert {
 			Color:   "#35495c",
 			IconURL: "https://ci.concourse-ci.org/public/images/favicon-pending.png",
 			Message: "",
-			Emoji: "⚪",
+			Emoji:   "⚪",
 		}
 	}
 
